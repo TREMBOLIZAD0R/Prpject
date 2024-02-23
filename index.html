@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tirar Foto</title>
+</head>
+<body>
+    <h1>Tirar Foto</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="snap">Tirar Foto</button>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snap = document.getElementById('snap');
+
+        const constraints = {
+            audio: false,
+            video: {
+                width: 640, height: 480
+            }
+        };
+
+        async function init() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                handleSuccess(stream);
+            } catch (e) {
+                console.error('navigator.getUserMedia error:', e);
+            }
+        }
+
+        function handleSuccess(stream) {
+            window.stream = stream;
+            video.srcObject = stream;
+        }
+
+        snap.addEventListener('click', function () {
+            canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+            var dataURL = canvas.toDataURL('image/png');
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'salvar_foto.php');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log('Foto salva com sucesso.');
+                } else {
+                    console.error('Erro ao salvar a foto.');
+                }
+            };
+            xhr.send('data=' + encodeURIComponent(dataURL));
+        });
+
+        init();
+    </script>
+</body>
+</html>
